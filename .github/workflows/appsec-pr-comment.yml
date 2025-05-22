@@ -21,10 +21,14 @@ jobs:
      
       - name: Install Gitleaks
         run: |
+          set -x
           wget -q https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_x64
-          chmod +x gitleaks_linux_x64
-          sudo mv gitleaks_linux_x64 /usr/local/bin/gitleaks
-          gitleaks version
+          ls -lh gitleaks_linux_x64 || echo "Download failed!"
+          chmod +x gitleaks_linux_x64 || echo "chmod failed!"
+          sudo mv gitleaks_linux_x64 /usr/local/bin/gitleaks || echo "sudo mv failed!"
+          which gitleaks || echo "gitleaks not found in path!"
+          gitleaks version || echo "gitleaks version failed!"
+
 
       - name: 🔒 Run AppSec Scanner
         env:
