@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 jobs:
-  scan:
+  AppSec_PR_Scan:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,10 +21,7 @@ jobs:
 
       - name: Install Gitleaks
         run: |
-          wget -O gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
-          tar -xvf gitleaks.tar.gz
-          chmod +x gitleaks
-          sudo mv gitleaks /usr/local/bin/
+          brew install gitleaks
           gitleaks version
 
       - name: 🔒 Run AppSec Scanner
