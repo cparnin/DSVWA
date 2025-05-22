@@ -2,7 +2,9 @@ name: AppSec LLM Scanner – PR Comment
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches: [master]
+  push:
+    branches: [master]
 
 jobs:
   scan:
@@ -23,7 +25,7 @@ jobs:
           chmod +x semgrep && sudo mv semgrep /usr/local/bin/
           pip install openai requests jinja2 python-dotenv
 
-      - name: 🧪 Run AppSec Scanner
+      - name: 🔒 Run AppSec Scanner
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
