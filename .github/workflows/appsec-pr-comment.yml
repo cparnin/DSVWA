@@ -1,4 +1,4 @@
-name: AppSec LLM Scanner – PR Comment
+name: AppSec PR Scan
 
 on:
   pull_request:
@@ -14,16 +14,18 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.11
-
-      - name: 📦 Install Semgrep & Dependencies
+      - name: 📦 Install Python & Semgrep
         run: |
-          curl -sL https://github.com/returntocorp/semgrep/releases/latest/download/semgrep-linux-amd64 -o semgrep
-          chmod +x semgrep && sudo mv semgrep /usr/local/bin/
-          pip install openai requests jinja2 python-dotenv
+          pip install semgrep openai requests jinja2 python-dotenv
+          semgrep --version
+
+      - name: Install Gitleaks
+        run: |
+          wget -O gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
+          tar -xvf gitleaks.tar.gz
+          chmod +x gitleaks
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
 
       - name: 🔒 Run AppSec Scanner
         env:
