@@ -17,11 +17,15 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: 📦 Install Semgrep & Dependencies
+      - name: Install Semgrep & Dependencies
         run: |
+          echo "Downloading Semgrep Linux binary"
           curl -sL https://github.com/returntocorp/semgrep/releases/latest/download/semgrep-linux-amd64 -o semgrep
           chmod +x semgrep
+          ls -lh semgrep
           sudo mv semgrep /usr/local/bin/
+          which semgrep
+          semgrep --version
           pip install openai requests jinja2 python-dotenv
 
 
