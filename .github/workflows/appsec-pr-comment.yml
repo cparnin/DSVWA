@@ -14,28 +14,22 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for better gitleaks scanning
+          fetch-depth: 0
 
       - name: 📦 Install Python & Semgrep
         run: |
           pip install semgrep openai requests jinja2 python-dotenv
           semgrep --version
-     
-      - name: Install Gitleaks
-        run: |
-          # Download and install gitleaks
-          curl -sSfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/scripts/install.sh | sh -s -- -b /usr/local/bin
-          gitleaks version
 
-      - name: 🔒 Run AppSec Scanner
+      - name: 🔒 Run AppSec Scanner (Semgrep Only for Now)
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          python cli.py --repo . --scan all
-        continue-on-error: true  # Don't fail the workflow if vulnerabilities are found
+          python cli.py --repo . --scan semgrep
+        continue-on-error: true
 
       - name: 💬 Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: pr-findings.txt
-        if: always()  # Post comment even if scan had issues
+        if: always()
