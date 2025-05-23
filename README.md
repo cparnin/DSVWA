@@ -1,35 +1,71 @@
+# DSVWA + AppSec Scanner
+
 ![Sign](https://i.imgur.com/bovh598.png)
 
-Damn Small Vulnerable Web [![Python 3.x](https://img.shields.io/badge/python-3.x-yellow.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-Unlicense-red.svg)](https://github.com/stamparm/DSVW/blob/master/LICENSE)
-=========
-tiny change here
-**Damn Small Vulnerable Web** (DSVW) is a deliberately vulnerable web application written in under 100 lines of code, created for educational purposes. It supports majority of (most popular) web application vulnerabilities together with appropriate attacks.
+## Overview
 
-![XSS](http://i.imgur.com/BoSOgJs.png)
+This repository combines:
+1. **Damn Small Vulnerable Web** (DSVW) - A deliberately vulnerable web application for testing
+2. **AppSec Scanner** - An AI-powered security scanner that finds and suggests fixes for vulnerabilities
 
-Quick start
-----
+The scanner demonstrates automated security analysis with:
+- 🔍 **Semgrep** for OWASP Top 10 pattern detection
+- 🔐 **Gitleaks** for secret scanning  
+- 🤖 **OpenAI integration** for automated remediation suggestions
+- 📝 **GitHub PR commenting** for seamless developer workflow
 
-Run the following command:
+## Quick Start
+
+### Run the Vulnerable Web App (for testing)
+```bash
+python3 dsvw.py 
+# Navigate to http://127.0.0.1:65412/
 ```
-$ python3 dsvw.py 
-Damn Small Vulnerable Web (DSVW) < 100 LoC (Lines of Code) #v0.2a
- by: Miroslav Stampar (@stamparm)
 
-[i] running HTTP server at 'http://127.0.0.1:65412'...
+### Run the Security Scanner
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Scan this repo (or any repo)
+python cli.py --repo . --scan all
+
+# Results saved to pr-findings.txt and reports/ directory
 ```
 
-and navigate your browser to http://127.0.0.1:65412/:
+### GitHub Action Integration
+The scanner automatically runs on PRs via `.github/workflows/appsec-pr-comment.yml` and posts findings as PR comments.
 
-![DSVW](http://i.imgur.com/9nG4mwu.png)
+## Phased Development Plan
 
-Requirements
-----
+### Phase 1: Prototype ✅ (Current)
+- [x] GitHub Action to scan PRs using LLM + Semgrep
+- [x] Detect OWASP Top 10 patterns in Python repos
+- [x] Leave AI-generated comments on PRs with recommendations
 
-Python (**3.x**) is required for running this program. Items *XML External Entity (local)*, *XML External Entity (remote)* and *Blind XPath Injection (boolean)* require installation of `python-lxml` (e.g. `apt-get install python-lxml`). Otherwise, those will be disabled.
+### Phase 2: MVP (Next)
+- [ ] Support full repo scanning on demand
+- [ ] Integrate dependency vulnerability checks (OSV, GitHub Advisory)
+- [ ] Auto-generate PRs for safe dependency upgrades
+- [ ] Expand language support (Java, Go, etc.)
 
-To install lxml via pip, run the following command:
+### Phase 3: Production
+- [ ] Add GitLab and Bitbucket support
+- [ ] Customize rule severity thresholds and report formats per client
+- [ ] Offer remediation-as-code via secure PRs
+- [ ] Build AppSec dashboard showing repo risk scores and remediation metrics
 
-```
+## Requirements
+
+Python (**3.x**) and the following tools:
+- Semgrep (installed via pip)
+- Gitleaks (binary installation required)
+- OpenAI API key (for remediation suggestions)
+
+```bash
 pip install -r requirements.txt
 ```
+
+## Team Collaboration
+
+This project is designed for AppSec guild collaboration. See the `scanner/` directory for modular components that can be extended for different security tools and integrations.

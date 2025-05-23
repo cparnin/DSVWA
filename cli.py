@@ -9,6 +9,7 @@ from pathlib import Path
 
 from scanner.semgrep import run_semgrep
 from scanner.gitleaks import run_gitleaks
+from scanner.sca import run_sca_scan
 from scanner.report import generate_html_report
 
 import requests
@@ -66,9 +67,9 @@ def batch_suggest_remediation(findings, batch_size=10):
             time.sleep(2)  # avoid slamming API if repeated errors
 
 def main():
-    parser = argparse.ArgumentParser(description="Run Semgrep and Gitleaks with AI remediation (batched, cheap!)")
+    parser = argparse.ArgumentParser(description="Run Semgrep, Gitleaks, and SCA with AI remediation (batched, cheap!)")
     parser.add_argument("--repo", required=True, help="Path to the repo to scan")
-    parser.add_argument("--scan", choices=["semgrep", "gitleaks", "all"], default="all")
+    parser.add_argument("--scan", choices=["semgrep", "gitleaks", "sca", "all"], default="all")
     parser.add_argument("--output", default="reports", help="Directory to store reports")
     parser.add_argument("--ai-batch-size", type=int, default=10, help="How many findings per OpenAI call (default: 10)")
     args = parser.parse_args()
@@ -87,6 +88,10 @@ def main():
         print("▶️ Running Gitleaks scan...")
         results["gitleaks"] = run_gitleaks(repo_path)
 
+    if args.scan in ["sca", "all"]:
+        print("▶️ Running SCA scan...")
+        results["sca"] = run_sca_scan(repo_path)
+
     print("💡 Starting AI remediation suggestions in batches...")
     for tool, findings in results.items():
         if findings:
@@ -104,7 +109,20 @@ def main():
             file_path = f.get("path") or f.get("file", "unknown file")
             line = f.get("start", {}).get("line") or f.get("line", "?")
             ai_fix = f.get("ai_remediation", "N/A")
-            summary_lines.append(f"- **{msg}** in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
+            
+            # Handle SCA-specific fields
+            if tool == "sca":
+                vuln_id = f.get("vulnerability_id", "")
+                severity = f.get("severity", "UNKNOWN")
+                fixed_versions = f.get("fixed_versions", [])
+                fix_info = f" | Severity: {severity}"
+                if vuln_id:
+                    fix_info += f" | Vuln ID: {vuln_id}"
+                if fixed_versions:
+                    fix_info += f" | Fixed in: {', '.join(fixed_versions[:3])}"
+                summary_lines.append(f"- **{msg}**{fix_info} in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
+            else:
+                summary_lines.append(f"- **{msg}** in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
         summary_lines.append("")  # Add space
 
     with open("pr-findings.txt", "w") as f:

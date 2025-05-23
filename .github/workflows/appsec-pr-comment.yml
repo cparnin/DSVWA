@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better gitleaks scanning
 
       - name: 📦 Install Python & Semgrep
         run: |
@@ -21,22 +23,19 @@ jobs:
      
       - name: Install Gitleaks
         run: |
-          set -x
-          wget -q https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_x64
-          ls -lh gitleaks_linux_x64 || echo "Download failed!"
-          chmod +x gitleaks_linux_x64 || echo "chmod failed!"
-          sudo mv gitleaks_linux_x64 /usr/local/bin/gitleaks || echo "sudo mv failed!"
-          which gitleaks || echo "gitleaks not found in path!"
-          gitleaks version || echo "gitleaks version failed!"
-
+          # Download and install gitleaks
+          curl -sSfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/scripts/install.sh | sh -s -- -b /usr/local/bin
+          gitleaks version
 
       - name: 🔒 Run AppSec Scanner
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           python cli.py --repo . --scan all
+        continue-on-error: true  # Don't fail the workflow if vulnerabilities are found
 
       - name: 💬 Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: pr-findings.txt
+        if: always()  # Post comment even if scan had issues
