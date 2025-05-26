@@ -40,7 +40,7 @@ def run_gitleaks(repo_path):
     # Read results if file exists
     if output_file.exists() and output_file.stat().st_size > 0:
         try:
-            with open(output_file) as f:
+    with open(output_file) as f:
                 content = f.read().strip()
                 if not content:
                     print("📄 Gitleaks report is empty - no secrets found")
@@ -72,4 +72,4 @@ def run_gitleaks(repo_path):
             return []
     else:
         print("📄 No gitleaks output file found - likely no secrets detected")
-        return []
+            return []

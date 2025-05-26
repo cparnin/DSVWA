@@ -122,7 +122,7 @@ def main():
                     fix_info += f" | Fixed in: {', '.join(fixed_versions[:3])}"
                 summary_lines.append(f"- **{msg}**{fix_info} in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
             else:
-                summary_lines.append(f"- **{msg}** in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
+            summary_lines.append(f"- **{msg}** in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
         summary_lines.append("")  # Add space
 
     with open("pr-findings.txt", "w") as f:
