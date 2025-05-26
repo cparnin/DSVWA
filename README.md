@@ -5,7 +5,7 @@
 ## Overview
 
 This repository combines:
-1. **Damn Small Vulnerable Web** (DSVW) - A deliberately vulnerable web application for testing
+1. **Damn Small Vulnerable Web** (DSVW) - A deliberately vulnerable web application for testing.
 2. **AppSec Scanner** - An AI-powered security scanner that finds and suggests fixes for vulnerabilities
 
 The scanner demonstrates automated security analysis with:
