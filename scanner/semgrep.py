@@ -6,10 +6,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 def run_semgrep(repo_path):
+    """
+    Run Semgrep SAST scanner on the given repository path.
+    Returns a list of findings in standardized format.
+    """
     try:
         out_dir = Path("reports")
         out_dir.mkdir(exist_ok=True)
         output_file = out_dir / "semgrep.json"
+        # Run Semgrep with auto config and output JSON results
         result = subprocess.run([
             "semgrep", "--config", "auto", "--json", "--output", str(output_file), repo_path
         ], capture_output=True, text=True, timeout=300)
@@ -17,6 +22,7 @@ def run_semgrep(repo_path):
             logger.warning(f"Semgrep returned code {result.returncode}")
             logger.warning(f"stdout: {result.stdout}")
             logger.warning(f"stderr: {result.stderr}")
+        # Parse and return findings from the JSON output
         with open(output_file) as f:
             results = json.load(f).get("results", [])
         return results

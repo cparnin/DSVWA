@@ -1,5 +1,5 @@
 # Python
-__pycache__/
+scanner/__pycache__/
 *.py[cod]
 *.egg-info/
 .venv/

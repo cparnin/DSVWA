@@ -6,14 +6,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 def run_gitleaks(repo_path):
+    """
+    Run Gitleaks secrets scanner on the given repository path.
+    Returns a list of normalized secret findings.
+    """
     out_dir = Path("reports")
     out_dir.mkdir(exist_ok=True)
     output_file = out_dir / "gitleaks.json"
     
     try:
         logger.info("Running gitleaks scan...")
-        
-        # Try git-aware scan first, fall back to filesystem scan
+        # Run Gitleaks in git-aware mode, fall back to filesystem scan if needed
         try:
             result = subprocess.run([
                 "gitleaks", "detect", 
@@ -40,7 +43,7 @@ def run_gitleaks(repo_path):
         logger.error(f"Error running gitleaks: {e}")
         return []
 
-    # Read results if file exists
+    # Read and normalize results if file exists
     if output_file.exists() and output_file.stat().st_size > 0:
         try:
             with open(output_file) as f:
@@ -48,11 +51,9 @@ def run_gitleaks(repo_path):
                 if not content:
                     logger.info("Gitleaks report is empty - no secrets found")
                     return []
-                    
                 results = json.loads(content)
                 logger.info(f"Gitleaks found {len(results)} potential secrets")
-                
-                # Normalize gitleaks output format
+                # Normalize gitleaks output format for downstream use
                 normalized_results = []
                 for leak in results:
                     normalized_leak = {
@@ -64,9 +65,7 @@ def run_gitleaks(repo_path):
                         'tool': 'gitleaks'
                     }
                     normalized_results.append(normalized_leak)
-                
                 return normalized_results
-                
         except json.JSONDecodeError as e:
             logger.error(f"Error parsing gitleaks JSON: {e}")
             return []

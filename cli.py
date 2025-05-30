@@ -8,18 +8,23 @@ import json
 from pathlib import Path
 import logging
 
-from scanner.semgrep import run_semgrep
-from scanner.gitleaks import run_gitleaks
-from scanner.sca import run_sca_scan
-from scanner.report import generate_html_report
+from scanner.semgrep import run_semgrep  # Semgrep SAST scanner
+from scanner.gitleaks import run_gitleaks  # Gitleaks secrets scanner
+from scanner.sca import run_sca_scan  # SCA (dependency) scanner (stub for now)
+from scanner.report import generate_html_report  # Report generator
 
 import requests
 import time
 
+# Configure logging for the CLI
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def batch_suggest_remediation(findings, batch_size=10):
+    """
+    Batch findings and send them to OpenAI for AI-powered remediation suggestions.
+    Adds the AI suggestion to each finding in-place.
+    """
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         logger.error("No OpenAI API key found. Set OPENAI_API_KEY in your .env file.")
@@ -28,6 +33,7 @@ def batch_suggest_remediation(findings, batch_size=10):
         return
 
     def make_prompt(batch):
+        # Build a prompt for the LLM with all findings in the batch
         prompt = "Suggest secure, actionable fixes for the following security findings. Answer as a numbered list matching each finding.\n\n"
         for idx, finding in enumerate(batch, 1):
             msg = finding.get("extra", {}).get("message") or finding.get("description", "No message")
@@ -61,7 +67,7 @@ def batch_suggest_remediation(findings, batch_size=10):
                     answers.append(line[line.find('.')+1:].strip())
                 elif answers:
                     answers[-1] += " " + line.strip()
-            # Assign
+            # Assign each AI suggestion to the corresponding finding
             for idx, finding in enumerate(batch):
                 finding["ai_remediation"] = answers[idx] if idx < len(answers) else "N/A"
         except Exception as e:
@@ -71,6 +77,10 @@ def batch_suggest_remediation(findings, batch_size=10):
             time.sleep(2)  # avoid slamming API if repeated errors
 
 def main():
+    """
+    Main CLI entry point. Parses arguments, runs selected scanners, batches AI suggestions,
+    and writes results to report files.
+    """
     parser = argparse.ArgumentParser(description="Run Semgrep, Gitleaks, and SCA with AI remediation (batched, cheap!)")
     parser.add_argument("--repo", required=True, help="Path to the repo to scan")
     parser.add_argument("--scan", choices=["semgrep", "gitleaks", "sca", "all"], default="all")
@@ -84,6 +94,7 @@ def main():
 
     results = {}
 
+    # Run selected scanners
     if args.scan in ["semgrep", "all"]:
         logger.info("Running Semgrep scan...")
         results["semgrep"] = run_semgrep(repo_path)
@@ -96,12 +107,13 @@ def main():
         logger.info("Running SCA scan...")
         results["sca"] = run_sca_scan(repo_path)
 
+    # Batch and send findings to OpenAI for remediation suggestions
     logger.info("Starting AI remediation suggestions in batches...")
     for tool, findings in results.items():
         if findings:
             batch_suggest_remediation(findings, batch_size=args.ai_batch_size)
 
-    # Write findings to PR-safe text file
+    # Write findings to PR-safe text file for GitHub Action comment
     summary_lines = []
     for tool, findings in results.items():
         summary_lines.append(f"## {tool.capitalize()} Findings\n")
