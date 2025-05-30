@@ -18,4 +18,5 @@ archive/
 .env.*
 # System files
 .DS_Store
+scanner/.DS_Store
 Thumbs.db
