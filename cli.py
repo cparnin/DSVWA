@@ -6,6 +6,7 @@ import argparse
 import os
 import json
 from pathlib import Path
+import logging
 
 from scanner.semgrep import run_semgrep
 from scanner.gitleaks import run_gitleaks
@@ -15,10 +16,13 @@ from scanner.report import generate_html_report
 import requests
 import time
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def batch_suggest_remediation(findings, batch_size=10):
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        print("❌ No OpenAI API key found. Set OPENAI_API_KEY in your .env file.")
+        logger.error("No OpenAI API key found. Set OPENAI_API_KEY in your .env file.")
         for finding in findings:
             finding["ai_remediation"] = "No API key, unable to suggest fix."
         return
@@ -40,7 +44,7 @@ def batch_suggest_remediation(findings, batch_size=10):
     for i in range(0, len(findings), batch_size):
         batch = findings[i:i + batch_size]
         prompt = make_prompt(batch)
-        print(f"🔗 [OpenAI] Sending findings {i+1}-{i+len(batch)} of {len(findings)} (batch size {batch_size})...")
+        logger.info(f"[OpenAI] Sending findings {i+1}-{i+len(batch)} of {len(findings)} (batch size {batch_size})...")
         try:
             data = {
                 "model": model,
@@ -61,7 +65,7 @@ def batch_suggest_remediation(findings, batch_size=10):
             for idx, finding in enumerate(batch):
                 finding["ai_remediation"] = answers[idx] if idx < len(answers) else "N/A"
         except Exception as e:
-            print(f"❌ [OpenAI] Batch failed: {e}")
+            logger.error(f"[OpenAI] Batch failed: {e}")
             for finding in batch:
                 finding["ai_remediation"] = "Error or rate limited from OpenAI."
             time.sleep(2)  # avoid slamming API if repeated errors
@@ -81,18 +85,18 @@ def main():
     results = {}
 
     if args.scan in ["semgrep", "all"]:
-        print("▶️ Running Semgrep scan...")
+        logger.info("Running Semgrep scan...")
         results["semgrep"] = run_semgrep(repo_path)
 
     if args.scan in ["gitleaks", "all"]:
-        print("▶️ Running Gitleaks scan...")
+        logger.info("Running Gitleaks scan...")
         results["gitleaks"] = run_gitleaks(repo_path)
 
     if args.scan in ["sca", "all"]:
-        print("▶️ Running SCA scan...")
+        logger.info("Running SCA scan...")
         results["sca"] = run_sca_scan(repo_path)
 
-    print("💡 Starting AI remediation suggestions in batches...")
+    logger.info("Starting AI remediation suggestions in batches...")
     for tool, findings in results.items():
         if findings:
             batch_suggest_remediation(findings, batch_size=args.ai_batch_size)
@@ -122,7 +126,7 @@ def main():
                     fix_info += f" | Fixed in: {', '.join(fixed_versions[:3])}"
                 summary_lines.append(f"- **{msg}**{fix_info} in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
             else:
-            summary_lines.append(f"- **{msg}** in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
+                summary_lines.append(f"- **{msg}** in `{file_path}:{line}`\n  - 💡 *{ai_fix}*")
         summary_lines.append("")  # Add space
 
     with open("pr-findings.txt", "w") as f:
@@ -131,7 +135,7 @@ def main():
     # Optional: generate an HTML report for human reading
     generate_html_report(results, output_dir)
 
-    print("✅ Scan complete. Findings saved to 'pr-findings.txt' and HTML report.")
+    logger.info("Scan complete. Findings saved to 'pr-findings.txt' and HTML report.")
 
 if __name__ == "__main__":
     main()

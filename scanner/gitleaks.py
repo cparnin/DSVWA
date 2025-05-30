@@ -1,6 +1,9 @@
 import subprocess
 import json
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 def run_gitleaks(repo_path):
     out_dir = Path("reports")
@@ -8,7 +11,7 @@ def run_gitleaks(repo_path):
     output_file = out_dir / "gitleaks.json"
     
     try:
-        print("🔍 Running gitleaks scan...")
+        logger.info("Running gitleaks scan...")
         
         # Try git-aware scan first, fall back to filesystem scan
         try:
@@ -21,33 +24,33 @@ def run_gitleaks(repo_path):
             ], capture_output=True, text=True, timeout=300)
             
             if result.returncode == 1:
-                print("✅ Gitleaks found potential secrets (exit code 1 - expected)")
+                logger.info("Gitleaks found potential secrets (exit code 1 - expected)")
             elif result.returncode == 0:
-                print("✅ Gitleaks completed - no secrets found")
+                logger.info("Gitleaks completed - no secrets found")
             else:
-                print(f"⚠️ Gitleaks returned code {result.returncode}")
-                print(f"stdout: {result.stdout}")
-                print(f"stderr: {result.stderr}")
+                logger.warning(f"Gitleaks returned code {result.returncode}")
+                logger.warning(f"stdout: {result.stdout}")
+                logger.warning(f"stderr: {result.stderr}")
                 
         except subprocess.TimeoutExpired:
-            print("⏰ Gitleaks scan timed out after 5 minutes")
+            logger.error("Gitleaks scan timed out after 5 minutes")
             return []
             
     except Exception as e:
-        print(f"❌ Error running gitleaks: {e}")
+        logger.error(f"Error running gitleaks: {e}")
         return []
 
     # Read results if file exists
     if output_file.exists() and output_file.stat().st_size > 0:
         try:
-    with open(output_file) as f:
+            with open(output_file) as f:
                 content = f.read().strip()
                 if not content:
-                    print("📄 Gitleaks report is empty - no secrets found")
+                    logger.info("Gitleaks report is empty - no secrets found")
                     return []
                     
                 results = json.loads(content)
-                print(f"📊 Gitleaks found {len(results)} potential secrets")
+                logger.info(f"Gitleaks found {len(results)} potential secrets")
                 
                 # Normalize gitleaks output format
                 normalized_results = []
@@ -65,11 +68,11 @@ def run_gitleaks(repo_path):
                 return normalized_results
                 
         except json.JSONDecodeError as e:
-            print(f"❌ Error parsing gitleaks JSON: {e}")
+            logger.error(f"Error parsing gitleaks JSON: {e}")
             return []
         except Exception as e:
-            print(f"❌ Error reading gitleaks output: {e}")
+            logger.error(f"Error reading gitleaks output: {e}")
             return []
     else:
-        print("📄 No gitleaks output file found - likely no secrets detected")
-            return []
+        logger.info("No gitleaks output file found - likely no secrets detected")
+        return []

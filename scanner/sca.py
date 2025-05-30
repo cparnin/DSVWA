@@ -10,6 +10,9 @@ import requests
 import os
 from pathlib import Path
 from typing import List, Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 def run_osv_scanner(repo_path: str) -> List[Dict[str, Any]]:
     """Run OSV scanner for dependency vulnerabilities"""
@@ -18,8 +21,7 @@ def run_osv_scanner(repo_path: str) -> List[Dict[str, Any]]:
         result = subprocess.run(['osv-scanner', '--version'], 
                               capture_output=True, text=True)
         if result.returncode != 0:
-            print("⚠️  OSV Scanner not found. Install with:")
-            print("   go install github.com/google/osv-scanner/cmd/osv-scanner@v1")
+            logger.warning("OSV Scanner not found. Install with: go install github.com/google/osv-scanner/cmd/osv-scanner@v1")
             return []
             
         # Run OSV scanner
@@ -34,11 +36,11 @@ def run_osv_scanner(repo_path: str) -> List[Dict[str, Any]]:
                 data = json.load(f)
                 return parse_osv_results(data)
         else:
-            print("❌ OSV scanner failed to generate results")
+            logger.error("OSV scanner failed to generate results")
             return []
             
     except Exception as e:
-        print(f"❌ Error running OSV scanner: {e}")
+        logger.error(f"Error running OSV scanner: {e}")
         return []
 
 def parse_osv_results(osv_data: Dict) -> List[Dict[str, Any]]:
@@ -142,7 +144,7 @@ def check_github_advisory(package_name: str, version: str) -> List[Dict[str, Any
         return []  # Placeholder for now
         
     except Exception as e:
-        print(f"❌ Error checking GitHub Advisory: {e}")
+        logger.error(f"Error checking GitHub Advisory: {e}")
         return []
 
 def generate_upgrade_suggestions(findings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -165,7 +167,7 @@ def generate_upgrade_suggestions(findings: List[Dict[str, Any]]) -> List[Dict[st
 
 def run_sca_scan(repo_path: str) -> List[Dict[str, Any]]:
     """Main SCA scanning function"""
-    print("🔍 Running Software Composition Analysis...")
+    logger.info("Running Software Composition Analysis...")
     
     findings = []
     
@@ -176,7 +178,7 @@ def run_sca_scan(repo_path: str) -> List[Dict[str, Any]]:
     # Generate upgrade suggestions
     if findings:
         suggestions = generate_upgrade_suggestions(findings)
-        print(f"💡 Generated {len(suggestions)} upgrade suggestions")
+        logger.info(f"Generated {len(suggestions)} upgrade suggestions")
         
         # Save suggestions to file for potential auto-PR generation
         suggestions_file = Path("reports/upgrade-suggestions.json")
