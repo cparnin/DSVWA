@@ -42,4 +42,4 @@ python cli.py --repo . --scan semgrep
 - Multi-language scanning
 - GitHub Action Marketplace
 
-**Questions?** See `.cursorrules` or ping #security-guild
+**Questions?** See `.cursorrules` or ping chad parnin or #devsecops-guild
