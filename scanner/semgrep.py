@@ -2,6 +2,7 @@ import subprocess
 import json
 from pathlib import Path
 import logging
+import webbrowser
 
 logger = logging.getLogger(__name__)
 
@@ -11,9 +12,9 @@ def run_semgrep(repo_path):
     Returns a list of findings in standardized format.
     """
     try:
-    out_dir = Path("reports")
-    out_dir.mkdir(exist_ok=True)
-    output_file = out_dir / "semgrep.json"
+        out_dir = Path("reports")
+        out_dir.mkdir(exist_ok=True)
+        output_file = out_dir / "semgrep.json"
         # Run Semgrep with auto config and output JSON results
         result = subprocess.run([
             "semgrep", "--config", "auto", "--json", "--output", str(output_file), repo_path
@@ -23,9 +24,10 @@ def run_semgrep(repo_path):
             logger.warning(f"stdout: {result.stdout}")
             logger.warning(f"stderr: {result.stderr}")
         # Parse and return findings from the JSON output
-    with open(output_file) as f:
-        results = json.load(f).get("results", [])
-    return results
+        with open(output_file) as f:
+            results = json.load(f).get("results", [])
+        webbrowser.open(str(out_dir / "report.html"))
+        return results
     except subprocess.TimeoutExpired:
         logger.error("Semgrep scan timed out after 5 minutes")
         return []

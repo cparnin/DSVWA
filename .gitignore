@@ -15,7 +15,6 @@ reports/
 archive/
 # Environment/config
 .env
-.env.*
 # System files
 .DS_Store
 scanner/.DS_Store
