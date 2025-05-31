@@ -11,17 +11,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout Code
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 📦 Install Python & Dependencies
+      - name: Install Python & Dependencies
         run: |
           pip install semgrep openai requests jinja2 python-dotenv
           semgrep --version
 
-      - name: 🔒 Run AppSec Scanner
+      - name: Run AppSec Scanner
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -32,7 +32,7 @@ jobs:
           ls -la reports/ || echo "reports directory not found"
         continue-on-error: true
 
-      - name: 📋 Debug Output
+      - name: Debug Output
         run: |
           echo "=== Current Directory ==="
           pwd
@@ -48,7 +48,7 @@ jobs:
             echo "Check the logs above for details." >> pr-findings.txt
           fi
 
-      - name: 💬 Comment on PR
+      - name: Comment on PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: pr-findings.txt
