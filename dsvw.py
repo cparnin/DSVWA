@@ -13,7 +13,6 @@ HARDCODED_PASSWORD = "p@ssw0rd123!"
 SLACK_WEBHOOK = "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
 salesforce_token = "00Dxx0000001gEREAY!AQwAQJv...demo"
 mysql_password = "hunter2"
-stripe_api_key = "sk_live_1234567890abcdefghijklmn"
 # --- END TEST SECRETS ---
 
 NAME, VERSION, GITHUB, AUTHOR, LICENSE = "Damn Small Vulnerable Web (DSVW) < 100 LoC (Lines of Code)", "0.2b", "https://github.com/stamparm/DSVW", "Miroslav Stampar (@stamparm)", "Unlicense (public domain)"
