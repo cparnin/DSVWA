@@ -40,7 +40,7 @@ python cli.py --repo . --scan all
 - Test on DSVWA
 
 ## Phase 2+ (Guild TODO)
-- SCA scanning (sca.py)
+- SCA scanning (sca.py).
 - Amazon Bedrock support?
 - GitHub Action Marketplace
 
