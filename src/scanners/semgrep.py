@@ -12,8 +12,8 @@ def run_semgrep(repo_path):
     Returns a list of findings in standardized format.
     """
     try:
-        out_dir = Path("reports")
-        out_dir.mkdir(exist_ok=True)
+        out_dir = Path("../outputs/raw")
+        out_dir.mkdir(parents=True, exist_ok=True)
         output_file = out_dir / "semgrep.json"
         # Run Semgrep with auto config and output JSON results
         result = subprocess.run([

@@ -4,19 +4,22 @@
 
 ## What is This?
 - Scans code for security bugs (Semgrep)
+- Scan for hardcoded secrets (Gitleaks using gitleaks.toml file)
 - AI (OpenAI) suggests fixes, posted as PR comments
 - GitHub Action automates PR scanning
 - HTML/text reports for security teams
-- DSVWA app included for testing
+- Using DSVWA & DVWA apps for testing
 
 ## Quick Start
 ```bash
 git clone https://github.com/cparnin/DSVWA
-cd DSVWA
+or
+git clone https://github.com/cparnin/DVWA
+cd DSVWA/DWVA
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 echo "OPENAI_API_KEY=your_key_here" > .env
-python cli.py --repo . --scan semgrep
+python cli.py --repo . --scan all
 # See pr-findings.txt and reports/
 ```
 
@@ -37,9 +40,8 @@ python cli.py --repo . --scan semgrep
 - Test on DSVWA
 
 ## Phase 2+ (Guild TODO)
-- SCA & secrets scanning (sca.py, gitleaks.py)
-- Amazon Bedrock support
-- Multi-language scanning
+- SCA scanning (sca.py)
+- Amazon Bedrock support?
 - GitHub Action Marketplace
 
 **Questions?** See `.cursorrules` or ping #security-guild

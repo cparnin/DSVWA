@@ -2,6 +2,7 @@ import os
 import requests
 import logging
 from typing import List, Dict, Any
+import re
 
 def batch_suggest_remediation(findings: List[Dict[str, Any]], batch_size: int = 10) -> None:
     """
@@ -26,7 +27,7 @@ def batch_suggest_remediation(findings: List[Dict[str, Any]], batch_size: int = 
             file_path = finding.get("path") or finding.get("file", "unknown file")
             line = finding.get("start", {}).get("line") or finding.get("line", "?")
             prompt += f"{idx}. [{file_path}:{line}] {msg}\n"
-        prompt += "\nRespond as:\n1. Fix details for finding 1\n2. Fix details for finding 2\n..."
+        prompt += "\nRespond as:\n1. [Your fix recommendation]\n2. [Your fix recommendation]\n..."
         return prompt
 
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
@@ -53,10 +54,20 @@ def batch_suggest_remediation(findings: List[Dict[str, Any]], batch_size: int = 
                 elif answers:
                     answers[-1] += " " + line.strip()
             for idx, finding in enumerate(batch):
-                finding["ai_remediation"] = answers[idx] if idx < len(answers) else "N/A"
+                raw = answers[idx] if idx < len(answers) else "N/A"
+                finding["ai_remediation"] = clean_ai_remediation(raw)
         except Exception as e:
             logger.error(f"[OpenAI] Batch failed: {e}")
             for finding in batch:
                 finding["ai_remediation"] = "Error or rate limited from OpenAI."
             import time
             time.sleep(2)  # avoid slamming API if repeated errors
+
+def clean_ai_remediation(text):
+    # Remove "Fix details for finding X:" or similar prefixes
+    cleaned = re.sub(r"^\s*(\*\*)?(Fix (details )?for finding \d+)\*\*:?\s*", "", text, flags=re.IGNORECASE)
+    # Convert **text** to <strong>text</strong> for proper HTML bold formatting
+    cleaned = re.sub(r"\*\*(.*?)\*\*", r"<strong>\1</strong>", cleaned)
+    # Add line break after first sentence if it ends with a colon
+    cleaned = re.sub(r"(<strong>.*?</strong>):\s*", r"\1:<br><br>", cleaned)
+    return cleaned
