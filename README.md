@@ -98,18 +98,24 @@ appsec_scanner/
 ├── src/                     # Main source code
 │   ├── cli.py              # Command-line interface
 │   ├── scanners/           # Security scanner modules
+│   │   ├── __init__.py     # Package initialization
 │   │   ├── semgrep.py      # SAST scanning (Semgrep)
 │   │   ├── gitleaks.py     # Secrets detection (Gitleaks)
 │   │   └── sca.py          # SCA scanning (planned)
 │   ├── ai/                 # AI remediation
+│   │   ├── __init__.py     # Package initialization
 │   │   └── remediation.py  # OpenAI integration
 │   └── reporting/          # Report generation
+│       ├── __init__.py     # Package initialization
 │       ├── html.py         # HTML report generator
 │       └── templates/      # Jinja2 templates
+│           └── report.html # HTML report template
 ├── configs/                # Configuration files
 │   └── .gitleaks.toml     # Secrets detection rules
 ├── .github/workflows/      # CI/CD automation
-└── outputs/                # Generated reports (gitignored)
+│   └── appsec-pr-comment.yml # GitHub Action for PR scanning
+├── outputs/                # Generated reports (gitignored)
+└── requirements.txt        # Python dependencies
 ```
 
 ## 🎯 **GitHub Integration**
