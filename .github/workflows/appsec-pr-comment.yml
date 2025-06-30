@@ -2,41 +2,37 @@ name: AppSec PR Scan
 
 on:
   pull_request:
-    branches: [master]
-  push:
-    branches: [master]
+    types: [opened, synchronize, reopened]
 
 jobs:
-  AppSec_PR_Scan:
+  scan:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 📥 Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 📦 Install Python & Semgrep
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install Semgrep
         run: |
-          pip install semgrep openai requests jinja2 python-dotenv
-          semgrep --version
-     
+          pip install semgrep
+
       - name: Install Gitleaks
-        run: |
-          set -x
-          wget -q https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_x64
-          ls -lh gitleaks_linux_x64 || echo "Download failed!"
-          chmod +x gitleaks_linux_x64 || echo "chmod failed!"
-          sudo mv gitleaks_linux_x64 /usr/local/bin/gitleaks || echo "sudo mv failed!"
-          which gitleaks || echo "gitleaks not found in path!"
-          gitleaks version || echo "gitleaks version failed!"
+        uses: gitleaks/gitleaks-action@v2.3.3
+        with:
+          version: latest
 
+      - name: Install Python Deps
+        run: pip install -r requirements.txt
 
-      - name: 🔒 Run AppSec Scanner
+      - name: Run Scanner
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          python cli.py --repo . --scan all
+        run: python cli.py --repo . --scan all
 
-      - name: 💬 Comment on PR
+      - name: Comment PR
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: pr-findings.txt
